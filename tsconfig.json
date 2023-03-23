@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "module": "ESNext",
+    "target": "ESNext",
+    "strict": true,
+    "plugins": [
+      { "transform": "ts-runtime-checks" },
+      { "transform": "typia/lib/transform" }
+    ]
+  },
+  "ts-node": {
+    "compiler": "ttypescript"
+  },
+
+  "include": ["/**/*.ts"],
+  "exclude": ["node_modules"]
+}
