@@ -1,4 +1,4 @@
-import { run, bench, group, baseline } from "mitata";
+import { run, bench, group } from "mitata";
 import * as yup from "yup";
 import Ajv from "ajv";
 import fastJson from "fast-json-stringify";
@@ -6,38 +6,38 @@ import { z } from "zod";
 import type { Assert } from "ts-runtime-checks";
 import { assert } from "typia";
 const ITERATIONS_LIMIT = 10000;
-
-interface RootObject {
-  id: number;
-  name: string;
-  username: string;
-  email: string;
-  address: Address;
-  phone: string;
-  website: string;
-  company: Company;
-}
-
-interface Company {
-  name: string;
-  catchPhrase: string;
-  bs: string;
-}
-
-interface Address {
-  street: string;
-  suite: string;
-  city: string;
-  zipcode: string;
-  geo: Geo;
-}
-
-interface Geo {
-  lat: string;
-  lng: string;
-}
+const enableYup = false;
 
 const cases = (jsonObj: any) => {
+  interface RootObject {
+    id: number;
+    name: string;
+    username: string;
+    email: string;
+    address: Address;
+    phone: string;
+    website: string;
+    company: Company;
+  }
+
+  interface Company {
+    name: string;
+    catchPhrase: string;
+    bs: string;
+  }
+
+  interface Address {
+    street: string;
+    suite: string;
+    city: string;
+    zipcode: string;
+    geo: Geo;
+  }
+
+  interface Geo {
+    lat: string;
+    lng: string;
+  }
   bench("vanilla json.parse()", () => {
     const str =
       '{"id":1,"name":"Leanne Graham","username":"Bret","email":"Sincere@april.biz","address":{"street":"Kulas Light","suite":"Apt. 556","city":"Gwenborough","zipcode":"92998-3874","geo":{"lat":"-37.3159","lng":"81.1496"}},"phone":"1-770-736-8031 x56442","website":"hildegard.org","company":{"name":"Romaguera-Crona","catchPhrase":"Multi-layered client-server neural-net","bs":"harness real-time e-markets"}}';
@@ -245,29 +245,31 @@ const cases = (jsonObj: any) => {
       } catch (error) {}
     }
   });
-  //   bench("yup", async () => {
-  //     const zodSchema = yup.object({
-  //       id: yup.number(),
-  //       name: yup.string(),
-  //       username: yup.string(),
-  //       email: yup.string(),
-  //       website: yup.string(),
-  //       phone: yup.string(),
-  //       address: yup.object({
-  //         street: yup.string(),
-  //         suite: yup.string(),
-  //         city: yup.string(),
-  //         zipcode: yup.string(),
-  //         geo: yup.object({
-  //           lat: yup.string(),
-  //           lng: yup.string(),
-  //         }),
-  //       }),
-  //     });
-  //     for (let index = 0; index < ITERATIONS_LIMIT; index++) {
-  //       zodSchema.validate(jsonObj);
-  //     }
-  //   });
+  if (enableYup) {
+    bench("yup", async () => {
+      const zodSchema = yup.object({
+        id: yup.number(),
+        name: yup.string(),
+        username: yup.string(),
+        email: yup.string(),
+        website: yup.string(),
+        phone: yup.string(),
+        address: yup.object({
+          street: yup.string(),
+          suite: yup.string(),
+          city: yup.string(),
+          zipcode: yup.string(),
+          geo: yup.object({
+            lat: yup.string(),
+            lng: yup.string(),
+          }),
+        }),
+      });
+      for (let index = 0; index < ITERATIONS_LIMIT; index++) {
+        zodSchema.validate(jsonObj);
+      }
+    });
+  }
 
   bench("ts-runtime-checks", async () => {
     function parse(input: Assert<RootObject>) {
@@ -290,7 +292,7 @@ const cases = (jsonObj: any) => {
   });
 };
 
-group("parse - success ", () => {
+group("parse - valid ", () => {
   const jsonObj = {
     id: 1,
     name: "Leanne Graham",
@@ -318,7 +320,7 @@ group("parse - success ", () => {
   cases(jsonObj);
 });
 
-group("parse - failure ", () => {
+group("parse - invalid ", () => {
   const jsonObj = {
     id: 1,
     name: "Leanne Graham",
@@ -348,9 +350,7 @@ group("parse - failure ", () => {
 
 await run({
   avg: true, // enable/disable avg column (default: true)
-  //   json: , // enable/disable json output (default: false)
   colors: true, // enable/disable colors (default: true)
   min_max: false, // enable/disable min/max column (default: true)
-  //   collect: false, // enable/disable collecting returned values into an array during the benchmark (default: false)
   percentiles: false, // enable/disable percentiles column (default: true)
 });
